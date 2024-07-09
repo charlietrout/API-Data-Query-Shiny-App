@@ -20,34 +20,22 @@ query_params <- list(
   sortBy = "PlayerName",
   ascending = TRUE,
   pageNumber = 1,
-  pageSize = 10
+  pageSize = 30
 )
 
 # Get player data using query parameters
 player_data_query <- get_player_data_advanced_query(query_params)
+player_data_query <- as_tibble(player_data_query)
 print(player_data_query)
 
 
 
 
 get_player_data_advanced_by_name <- function(player_name) {
-  base_url <- paste("http://b8c40s8.143.198.70.30.sslip.io/api/PlayerDataAdvanced/name", player_name, sep = "/")
+  base_url <- paste0("http://b8c40s8.143.198.70.30.sslip.io/api/PlayerDataAdvanced/name/", URLencode(player_name))
   
-  response <- httr::GET(url = base_url)
-  stop_for_status(response)
-  
-  player_data <- content(response, as = "text")
-  player_data <- fromJSON(player_data)
-  
-  return(player_data)
-}
-
-# Example usage:
-player_data_by_name <- get_player_data_advanced_by_name("LeBron James")
-print(player_data_by_name)
-
-get_player_data_advanced_by_name <- function(player_name) {
-  base_url <- paste("http://b8c40s8.143.198.70.30.sslip.io/api/PlayerDataAdvanced/name", player_name, sep = "/")
+  # Print the request URL for debugging
+  cat("Request URL:", base_url, "\n")
   
   response <- httr::GET(url = base_url)
   stop_for_status(response)
@@ -82,26 +70,11 @@ print(player_data_by_season)
 
 
 
-get_player_data_advanced_by_player_id <- function(player_id) {
-  base_url <- paste("http://b8c40s8.143.198.70.30.sslip.io/api/PlayerDataAdvanced/playerid", player_id, sep = "/")
-  
-  response <- httr::GET(url = base_url)
-  stop_for_status(response)
-  
-  player_data <- content(response, as = "text")
-  player_data <- fromJSON(player_data)
-  
-  return(player_data)
-}
-
-# Example usage:
-player_data_by_id <- get_player_data_advanced_by_player_id("12345")
-print(player_data_by_id)
-
-
-
 get_player_data_advanced_by_team <- function(team_name) {
-  base_url <- paste("http://b8c40s8.143.198.70.30.sslip.io/api/PlayerDataAdvanced/team", team_name, sep = "/")
+  base_url <- paste0("http://b8c40s8.143.198.70.30.sslip.io/api/PlayerDataAdvanced/team/", URLencode(team_name))
+  
+  # Print the request URL for debugging
+  cat("Request URL:", base_url, "\n")
   
   response <- httr::GET(url = base_url)
   stop_for_status(response)
@@ -113,7 +86,7 @@ get_player_data_advanced_by_team <- function(team_name) {
 }
 
 # Example usage:
-player_data_by_team <- get_player_data_advanced_by_team("Los Angeles Lakers")
+player_data_by_team <- get_player_data_advanced_by_team("LAL")
 print(player_data_by_team)
 
 
