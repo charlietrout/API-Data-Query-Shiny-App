@@ -112,8 +112,8 @@ query_params <- list(
 )
 
 # Get player data using query parameters
-player_data_query <- get_player_data_advancedplayoff_query(query_params)
-print(player_data_query)
+playoff_player_data_query <- get_player_data_advancedplayoff_query(query_params)
+print(playoff_player_data_query)
 
 
 
@@ -131,8 +131,8 @@ get_player_data_advancedplayoff_by_name <- function(player_name) {
 }
 
 # Example usage:
-player_data_by_name <- get_player_data_advancedplayoff_by_name("LeBron James")
-print(player_data_by_name)
+playoff_player_data_by_name <- get_player_data_advancedplayoff_by_name("LeBron James")
+print(playoff_player_data_by_name)
 
 
 
@@ -149,8 +149,8 @@ get_player_data_advancedplayoff_by_season <- function(season) {
 }
 
 # Example usage:
-player_data_by_season <- get_player_data_advancedplayoff_by_season("2023")
-print(player_data_by_season)
+playoff_player_data_by_season <- get_player_data_advancedplayoff_by_season("2023")
+print(playoff_player_data_by_season)
 
 
 
@@ -167,6 +167,11 @@ get_player_data_advancedplayoff_by_team <- function(team_name) {
 }
 
 # Example usage:
-player_data_by_team <- get_player_data_advancedplayoff_by_team("LAL")
-print(player_data_by_team)
+playoff_player_data_by_team <- get_player_data_advancedplayoff_by_team("LAL")
+print(playoff_player_data_by_team)
+
+contingency_table <- table(player_data_by_team$position, player_data_by_team$team)
+print(contingency_table)
+
+
 
