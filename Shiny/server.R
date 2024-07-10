@@ -68,7 +68,7 @@ shinyServer(function(input, output, session) {
     # Update choices for selectInput elements in Data Exploration tab
     updateSelectInput(session, "xVar", choices = colnames(player_data_filtered))
     updateSelectInput(session, "yVar", choices = colnames(player_data_filtered))
-    updateSelectInput(session, "facetVar", choices = c("position", "season", "team", "playerName"), selected = "position")
+    updateSelectInput(session, "facetVar", choices = c("Position", "Season", "Team", "Player Name"), selected = "Position")
   })
   
   # Render query results table
@@ -157,12 +157,12 @@ shinyServer(function(input, output, session) {
   
   # Dynamic UI for additional plot options based on plot type
   output$plotOptions <- renderUI({
-    if (input$plotType == "bar") {
+    if (input$plotType == "Bar Plot") {
       selectInput("barFill", "Bar Fill Color", choices = c("Automatic" = "auto", "Manual" = "manual"))
-    } else if (input$plotType == "scatter") {
-      selectInput("pointShape", "Point Shape", choices = c("Circle" = 19, "Square" = 15, "Triangle" = 17))
+    } else if (input$plotType == "Scatter Plot") {
+      selectInput("pointShape", "Point Shape", choices = c("Circle" = 1, "Square" = 2, "Triangle" = 3))
     } else {
-      NULL  # You can add more conditions based on plot types
+      NULL  # For other plot types, no additional options are needed
     }
   })
   
@@ -170,36 +170,44 @@ shinyServer(function(input, output, session) {
   observeEvent(input$plotBtn, {
     req(input$xVar, input$yVar, input$plotType)
     
-    output$dataPlot <- renderPlot({
-      ggplot(player_data(), aes_string(x = input$xVar, y = input$yVar)) +
-        get_geom(input$plotType) +  # Custom function to choose geom based on plot type
-        facet_wrap(~input$facetVar) +
-        labs(x = input$xVar, y = "Count", title = "Player Data Visualization") +
-        theme_minimal()
-    })
+    if (input$plotType == "Bar Plot") {
+      output$dataPlot <- renderPlot({
+        ggplot(player_data(), aes(x = input$xVar, fill = input$barFill)) +
+          geom_bar() +
+          facet_wrap(~input$facetVar) +
+          labs(x = input$xVar, y = "Count", title = "Bar Plot") +
+          theme_minimal()
+      })
+    } else if (input$plotType == "Scatter Plot") {
+      output$dataPlot <- renderPlot({
+        ggplot(player_data(), aes(x = input$xVar, y = input$yVar)) +
+          geom_point(shape = input$pointShape) +
+          facet_wrap(~input$facetVar) +
+          labs(x = input$xVar, y = input$yVar, title = "Scatter Plot") +
+          theme_minimal()
+      })
+    } else if (input$plotType == "Contingency Table") {
+      output$dataPlot <- renderPlot({
+        table_data <- table(player_data()[, c(input$xVar, input$yVar)])
+        heatmap(table_data, Rowv = NA, Colv = NA, scale = "column", margins = c(5, 10))
+      })
+    } else if (input$plotType == "Heatmap") {
+      output$dataPlot <- renderPlot({
+        ggplot(player_data(), aes(x = input$xVar, y = input$yVar)) +
+          geom_tile(aes(fill = ..count..), colour = "white") +
+          labs(x = input$xVar, y = input$yVar, fill = "Frequency", title = "Heatmap") +
+          theme_minimal()
+      })
+    } else if (input$plotType == "Summary (Mean & SD)") {
+      output$dataPlot <- renderPlot({
+        summary_data <- player_data() %>%
+          summarise_if(is.numeric, list(mean = mean, sd = sd))
+        ggplot(summary_data, aes(x = variable, y = value, fill = stat)) +
+          geom_bar(stat = "identity", position = "dodge") +
+          labs(x = "Variable", y = "Value", fill = "Statistic", title = "Summary: Mean & SD") +
+          theme_minimal()
+      })
+    }
   })
-  
-  # Function to get appropriate geom based on plot type
-  get_geom <- function(plotType) {
-    switch(plotType,
-           "bar" = geom_bar(stat = "count", fill = input$barFill),
-           "scatter" = geom_point(shape = input$pointShape),
-           "line" = geom_line(),
-           "boxplot" = geom_boxplot(),
-           "histogram" = geom_histogram(binwidth = 0.5),
-           "density" = geom_density(),
-           "violin" = geom_violin(),
-           "errorbar" = geom_errorbar(),
-           "area" = geom_area(),
-           "dotplot" = geom_dotplot(binwidth = 0.5),
-           "jitter" = geom_jitter(),
-           "ridge" = geom_density_ridges(),
-           "step" = geom_step(),
-           "tile" = geom_tile(),
-           "text" = geom_text(),
-           "abline" = geom_abline(),
-           "path" = geom_path(),
-           "polygon" = geom_polygon())
-  }
   
 })

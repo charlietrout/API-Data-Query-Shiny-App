@@ -51,24 +51,24 @@ fluidPage(
     ),
     
     tabPanel("Data Exploration",
-         fluidPage(
-           titlePanel("Data Exploration"),
-           sidebarLayout(
-             sidebarPanel(
-               h3("Select Variables"),
-               selectInput("xVar", "X-axis Variable", choices = NULL),
-               selectInput("yVar", "Y-axis Variable", choices = NULL, selected = NULL, multiple = TRUE),
-               selectInput("plotType", "Plot Type", choices = c("bar", "scatter")),
-               selectInput("facetVar", "Facet By", choices = NULL, selected = NULL),
-               uiOutput("plotOptions"),  # Dynamic UI for additional plot options
-               actionButton("plotBtn", "Generate Plot")  # Button to generate plot
-             ),
-             mainPanel(
-               h3("Plot"),
-               plotOutput("dataPlot")
+             fluidPage(
+               titlePanel("Data Exploration"),
+               sidebarLayout(
+                 sidebarPanel(
+                   h3("Select Variables"),
+                   selectInput("xVar", "X-axis Variable", choices = NULL),
+                   selectInput("yVar", "Y-axis Variable", choices = NULL, selected = NULL, multiple = TRUE),
+                   selectInput("plotType", "Plot Type", choices = c("Bar Plot", "Scatter Plot", "Contingency Table", "Heatmap", "Summary (Mean & SD)")),
+                   selectInput("facetVar", "Facet By", choices = NULL, selected = NULL),
+                   uiOutput("plotOptions"),  # Dynamic UI for additional plot options
+                   actionButton("plotBtn", "Generate Plot")  # Button to generate plot
+                 ),
+                 mainPanel(
+                   h3("Plot"),
+                   plotOutput("dataPlot")
+                 )
+               )
              )
-           )
-         )
-)
-)
+    )
+  )
 )
