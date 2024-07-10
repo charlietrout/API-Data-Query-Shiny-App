@@ -4,54 +4,29 @@ library(jsonlite)
 library(ggplot2)
 library(DT) # For interactive tables
 
-get_player_data_advanced_query <- function(playerName, season, team) {
-  base_url <- "http://b8c40s8.143.198.70.30.sslip.io/api/PlayerDataAdvanced/query"
+get_player_data_advanced_by_season <- function(season) {
+  base_url <- paste("http://b8c40s8.143.198.70.30.sslip.io/api/PlayerDataAdvanced/season", season, sep = "/")
   
-  query_params <- list(
-    playerName = playerName,
-    season = season,
-    team = team
-  )
-  
-  # Construct the query URL with parameters
-  query_url <- modify_url(base_url, query = query_params)
-  
-  # Make the GET request
-  response <- httr::GET(url = query_url)
+  response <- httr::GET(url = base_url)
   stop_for_status(response)
   
-  # Parse the JSON content
   player_data <- content(response, as = "text")
   player_data <- fromJSON(player_data)
   
   return(player_data)
 }
 
-
-get_player_data_advancedplayoffs_query <- function(playerName, season, team) {
-  base_url <- "http://b8c40s8.143.198.70.30.sslip.io/api/PlayerDataAdvancedPlayoffs/query"
+get_player_data_advancedplayoff_by_season <- function(season) {
+  base_url <- paste("http://b8c40s8.143.198.70.30.sslip.io/api/PlayerDataAdvancedPlayoffs/season", season, sep = "/")
   
-  query_params <- list(
-    playerName = playerName,
-    season = season,
-    team = team
-  )
-  
-  # Construct the query URL with parameters
-  query_url <- modify_url(base_url, query = query_params)
-  
-  # Make the GET request
-  response <- httr::GET(url = query_url)
+  response <- httr::GET(url = base_url)
   stop_for_status(response)
   
-  # Parse the JSON content
   player_data <- content(response, as = "text")
   player_data <- fromJSON(player_data)
   
   return(player_data)
 }
-
-
 
 # Define server function
 shinyServer(function(input, output, session) {
@@ -60,19 +35,38 @@ shinyServer(function(input, output, session) {
   player_data <- reactiveVal(NULL)  # Initialize as NULL
   
   observeEvent(input$getDataBtn, {
+    season <- input$season
     season_type <- ifelse(input$seasonType == "Regular Season", "regular", "playoffs")
+    team <- input$teamName
+    player <- input$playerName
     
     # Call your appropriate API function based on user selection
     if (season_type == "regular") {
-      player_data(get_player_data_advanced_query(input$playerName, input$season, input$teamName))
+      player_data_raw <- get_player_data_advanced_by_season(season)
     } else {
-      player_data(get_player_data_advancedplayoffs_query(input$playerName, input$season, input$teamName))
-    } 
+      player_data_raw <- get_player_data_advancedplayoff_by_season(season)
+    }
+    
+    # Filter data based on selected team name and player name
+    if (!is.null(team) && team != "") {
+      player_data_filtered <- player_data_raw[player_data_raw$team == team, ]
+    } else {
+      player_data_filtered <- player_data_raw
+    }
+    
+    if (!is.null(player) && player != "") {
+      player_data_filtered <- player_data_filtered[grep(player, player_data_filtered$playerName, ignore.case = TRUE), ]
+    }
+    
+    player_data(player_data_filtered)
+    
+    
   })
   
   # Render query results table
   output$queryTable <- renderDT({
     req(player_data())  # Require player_data to be available
+    
     datatable(player_data(), options = list(lengthMenu = c(10, 20, 30, 50, 100, 250, 500, 1000), pageLength = 10))
   })
   
@@ -96,8 +90,8 @@ shinyServer(function(input, output, session) {
   output$dataPlot <- renderPlot({
     req(input$xVar, input$plotType)
     
-    ggplot(player_data(), aes_string(x = input$xVar, y = input$yVar)) +
-      geom_bar(stat = "identity") +
+    ggplot(player_data_all_seasons, aes_string(x = input$xVar, y = input$yVar)) +
+      geom_bar(stat = input$plotType) +
       facet_wrap(~input$facetVar) +
       labs(x = input$xVar, y = "Count", title = "Player Data Visualization") +
       theme_minimal()

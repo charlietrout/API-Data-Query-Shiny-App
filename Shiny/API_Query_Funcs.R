@@ -10,6 +10,11 @@ get_player_data_advanced_query <- function(playerName, season, team) {
     team = team
   )
   
+  # Remove playerName from query_params if it is NULL or empty
+  if (is.null(playerName) || playerName == "") {
+    query_params <- query_params[!names(query_params) %in% "playerName"]
+  }
+  
   # Construct the query URL with parameters
   query_url <- modify_url(base_url, query = query_params)
   
@@ -115,7 +120,6 @@ query_params <- list(
   playerName = "LeBron James",
   sortBy = "PlayerName",
   ascending = TRUE,
-  pageNumber = 1,
   pageSize = 30
 )
 
@@ -194,7 +198,7 @@ get_player_data_for_all_seasons <- function() {
 # Example usage
 player_data_all_seasons <- get_player_data_for_all_seasons()
 
-
+print(player)
 
 
 # Example usage:
